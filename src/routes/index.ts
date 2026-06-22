@@ -1,0 +1,32 @@
+import { Router } from "express";
+import { authRoutes } from "../modules/auth/auth.routes";
+import { adminProductsRoutes, productsRoutes } from "../modules/products/products.routes";
+import { adminCategoriesRoutes, categoriesRoutes } from "../modules/categories/categories.routes";
+import { cartRoutes } from "../modules/cart/cart.routes";
+import { wishlistRoutes } from "../modules/wishlist/wishlist.routes";
+import { adminOrdersRoutes, ordersRoutes } from "../modules/orders/orders.routes";
+import { adminUsersRoutes, usersRoutes } from "../modules/users/users.routes";
+import { inventoryRoutes } from "../modules/inventory/inventory.routes";
+import { mediaRoutes } from "../modules/media/media.routes";
+import { analyticsRoutes } from "../modules/analytics/analytics.routes";
+import { searchRoutes } from "../modules/search/search.routes";
+import { settingsRoutes } from "../modules/settings/settings.routes";
+
+export const routes = Router();
+
+routes.use("/auth", authRoutes);
+routes.use("/products", productsRoutes);
+routes.use("/admin/products", adminProductsRoutes);
+routes.use("/categories", categoriesRoutes);
+routes.use("/admin/categories", adminCategoriesRoutes);
+routes.use("/cart", cartRoutes);
+routes.use("/wishlist", wishlistRoutes);
+routes.use("/orders", ordersRoutes);
+routes.use("/admin/orders", adminOrdersRoutes);
+routes.use("/me", usersRoutes);
+routes.use("/admin/users", adminUsersRoutes);
+routes.use("/inventory", inventoryRoutes);
+routes.use("/media", mediaRoutes);
+routes.use("/analytics", analyticsRoutes);
+routes.use("/search", searchRoutes);
+routes.use("/settings", settingsRoutes);
