@@ -8,7 +8,8 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   const data = await service.register(req.body);
   res.cookie("refreshToken", data.refreshToken, {
     httpOnly: true,
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   res.status(201).json({ success: true, data });
 });
@@ -17,7 +18,8 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   const data = await service.login(req.body);
   res.cookie("refreshToken", data.refreshToken, {
     httpOnly: true,
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   res.status(200).json({ success: true, data });
 });
@@ -27,7 +29,8 @@ export const refresh = catchAsync(async (req: Request, res: Response) => {
   const data = await service.refresh(refreshToken);
   res.cookie("refreshToken", data.refreshToken, {
     httpOnly: true,
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
   res.status(200).json({ success: true, data });
 });
