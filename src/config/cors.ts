@@ -5,16 +5,18 @@ export const corsOptions = {
     // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = [
-      env.CLIENT_ORIGIN,
-      "http://localhost:3000",
-      "http://localhost:3001",
-    ];
+    const clientOrigin = env.CLIENT_ORIGIN?.replace(/\/$/, "");
 
-    if (allowedOrigins.includes(origin) || env.NODE_ENV === "development") {
+    if (
+      env.CLIENT_ORIGIN === "*" ||
+      origin === clientOrigin || 
+      origin.startsWith("http://localhost:") ||
+      env.NODE_ENV === "development"
+    ) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.error(`CORS BLOCKED ORIGIN: "${origin}" - Expected: "${clientOrigin}"`);
+      callback(new Error(`Not allowed by CORS`));
     }
   },
   credentials: true,
