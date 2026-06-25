@@ -4,6 +4,7 @@ import { AppError } from "../../utils/AppError";
 export class InventoryService {
   async list() {
     const variants = await prisma.productVariant.findMany({
+      where: { product: { status: { not: "ARCHIVED" } } },
       orderBy: { updatedAt: "desc" },
       include: {
         product: {

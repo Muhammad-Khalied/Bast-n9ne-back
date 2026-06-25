@@ -427,6 +427,19 @@ export class ProductsService {
   }
 
   async remove(id: string) {
+    const activeOrdersCount = await prisma.orderItem.count({
+      where: {
+        productId: id,
+        order: {
+          status: { in: ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED"] },
+        },
+      },
+    });
+
+    if (activeOrdersCount > 0) {
+      throw new AppError("Cannot delete a product that is currently part of an active order.", 400, "ACTIVE_ORDERS_EXIST");
+    }
+
     return prisma.$transaction([
       prisma.cartItem.deleteMany({ where: { productId: id } }),
       prisma.wishlistItem.deleteMany({ where: { productId: id } }),
