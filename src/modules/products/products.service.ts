@@ -271,10 +271,10 @@ export class ProductsService {
   }
 
   async create(input: any) {
-    const slug = slugify(input.title);
+    let slug = slugify(input.title);
     const existing = await prisma.product.findUnique({ where: { slug } });
     if (existing) {
-      throw new AppError("Product slug already exists", 409, "PRODUCT_EXISTS");
+      slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
     }
 
     const variants = this.normalizeVariants(input.variants, slug);
@@ -334,11 +334,11 @@ export class ProductsService {
       throw new AppError("Product not found", 404, "PRODUCT_NOT_FOUND");
     }
 
-    const nextSlug = input.title ? slugify(input.title) : product.slug;
+    let nextSlug = input.title ? slugify(input.title) : product.slug;
     if (nextSlug !== product.slug) {
       const slugOwner = await prisma.product.findUnique({ where: { slug: nextSlug } });
       if (slugOwner && slugOwner.id !== id) {
-        throw new AppError("Product slug already exists", 409, "PRODUCT_EXISTS");
+        nextSlug = `${nextSlug}-${Math.random().toString(36).substring(2, 6)}`;
       }
     }
 
