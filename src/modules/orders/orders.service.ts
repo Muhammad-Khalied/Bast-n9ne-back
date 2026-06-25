@@ -185,6 +185,32 @@ export class OrdersService {
               },
             });
           }
+        } else if (order.status === "CANCELLED" && status !== "CANCELLED") {
+          data.cancelledAt = null;
+          
+          for (const item of order.items) {
+            const variant = await tx.productVariant.findUnique({
+              where: { id: item.variantId },
+            });
+            if (!variant || variant.stock < item.quantity) {
+              throw new AppError(`Insufficient stock for "${item.title}" to update this order from cancelled`, 400, "OUT_OF_STOCK");
+            }
+            
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stock: { decrement: item.quantity } },
+            });
+            
+            await tx.inventoryMovement.create({
+              data: {
+                variantId: item.variantId,
+                type: "SALE",
+                quantity: -item.quantity,
+                reference: order.id,
+                performedBy: "SYSTEM",
+              },
+            });
+          }
         }
       }
       
