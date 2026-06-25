@@ -191,8 +191,14 @@ export class OrdersService {
           for (const item of order.items) {
             const variant = await tx.productVariant.findUnique({
               where: { id: item.variantId },
+              include: { product: true },
             });
-            if (!variant || variant.stock < item.quantity) {
+
+            if (!variant || variant.product.status === "ARCHIVED") {
+              throw new AppError(`Cannot update order because product "${item.title}" has been deleted`, 400, "PRODUCT_DELETED");
+            }
+
+            if (variant.stock < item.quantity) {
               throw new AppError(`Insufficient stock for "${item.title}" to update this order from cancelled`, 400, "OUT_OF_STOCK");
             }
             
