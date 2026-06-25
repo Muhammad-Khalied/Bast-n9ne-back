@@ -151,13 +151,49 @@ export class OrdersService {
   }
 
   async updateStatus(id: string, status?: string, paymentStatus?: string) {
-    const data: any = {};
-    if (status) data.status = status;
-    if (paymentStatus) data.paymentStatus = paymentStatus;
-
-    return prisma.order.update({
+    const order = await prisma.order.findUnique({
       where: { id },
-      data,
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new AppError("Order not found", 404, "ORDER_NOT_FOUND");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const data: any = {};
+      
+      if (status) {
+        data.status = status;
+        
+        if (status === "CANCELLED" && order.status !== "CANCELLED") {
+          data.cancelledAt = new Date();
+          
+          for (const item of order.items) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stock: { increment: item.quantity } },
+            });
+            
+            await tx.inventoryMovement.create({
+              data: {
+                variantId: item.variantId,
+                type: "RETURN",
+                quantity: item.quantity,
+                reference: order.id,
+                performedBy: "SYSTEM",
+              },
+            });
+          }
+        }
+      }
+      
+      if (paymentStatus) data.paymentStatus = paymentStatus;
+
+      return tx.order.update({
+        where: { id },
+        data,
+      });
     });
   }
 }

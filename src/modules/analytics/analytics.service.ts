@@ -5,7 +5,7 @@ export class AnalyticsService {
     const [ordersCount, revenue, customers, products, pendingOrders, recentOrders, topProducts] =
       await Promise.all([
         prisma.order.count(),
-        prisma.order.aggregate({ _sum: { total: true } }),
+        prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
         prisma.user.count({ where: { role: "CUSTOMER" } }),
         prisma.product.count({ where: { status: "PUBLISHED" } }),
         prisma.order.count({ where: { status: "PENDING" } }),

@@ -304,6 +304,18 @@ export class ProductsService {
           })),
         },
       }),
+      ...(input.media && Array.isArray(input.media) && input.media.length > 0 && {
+        media: {
+          create: input.media.map((m: any, index: number) => ({
+            url: m.url,
+            publicId: m.publicId || m.url,
+            width: m.width || null,
+            height: m.height || null,
+            sortOrder: index,
+            type: "IMAGE",
+          })),
+        },
+      }),
     };
 
     return prisma.product.create({
