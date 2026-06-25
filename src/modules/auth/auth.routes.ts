@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
 import { validate } from "../../middleware/validate";
+import { loginLimiter, registerLimiter, forgotPasswordLimiter } from "../../middleware/rateLimiter";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -12,9 +13,9 @@ import { forgotPassword, login, logout, refresh, register, resetPassword } from 
 
 export const authRoutes = Router();
 
-authRoutes.post("/register", validate(registerSchema), register);
-authRoutes.post("/login", validate(loginSchema), login);
+authRoutes.post("/register", registerLimiter, validate(registerSchema), register);
+authRoutes.post("/login", loginLimiter, validate(loginSchema), login);
 authRoutes.post("/refresh", validate(refreshSchema), refresh);
 authRoutes.post("/logout", authenticate, logout);
-authRoutes.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
-authRoutes.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+authRoutes.post("/forgot-password", forgotPasswordLimiter, validate(forgotPasswordSchema), forgotPassword);
+authRoutes.post("/reset-password", forgotPasswordLimiter, validate(resetPasswordSchema), resetPassword);

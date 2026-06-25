@@ -272,9 +272,17 @@ export class ProductsService {
 
   async create(input: any) {
     let slug = slugify(input.title);
-    const existing = await prisma.product.findUnique({ where: { slug } });
-    if (existing) {
-      slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`;
+    let attempts = 0;
+    while (true) {
+      const existingSlug = await prisma.product.findUnique({ where: { slug } });
+      if (!existingSlug) break;
+      
+      attempts++;
+      slug = `${slugify(input.title)}-${Math.random().toString(36).substring(2, 6 + attempts)}`;
+      
+      if (attempts > 5) {
+        throw new AppError("Failed to generate a unique slug. Please try a different title.", 409, "SLUG_COLLISION");
+      }
     }
 
     const variants = this.normalizeVariants(input.variants, slug);

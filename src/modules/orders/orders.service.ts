@@ -65,9 +65,7 @@ export class OrdersService {
         if (item.product.status !== "PUBLISHED" || !item.variant.isActive) {
           throw new AppError(`Product "${item.product.title}" is no longer available. Please review your cart.`, 400, "PRODUCT_UNAVAILABLE");
         }
-        if (item.variant.stock < item.quantity) {
-          throw new AppError(`Insufficient stock for "${item.product.title}"`, 400, "OUT_OF_STOCK");
-        }
+
         const updatedVariant = await tx.productVariant.update({
           where: { id: item.variantId },
           data: { stock: { decrement: item.quantity } },

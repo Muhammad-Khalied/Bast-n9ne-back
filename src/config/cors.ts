@@ -10,8 +10,7 @@ export const corsOptions = {
     if (
       env.CLIENT_ORIGIN === "*" ||
       origin === clientOrigin || 
-      origin.startsWith("http://localhost:") ||
-      env.NODE_ENV === "development"
+      (env.NODE_ENV === "development" && origin.startsWith("http://localhost:"))
     ) {
       callback(null, true);
     } else {

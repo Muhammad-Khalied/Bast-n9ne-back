@@ -9,6 +9,7 @@ export const errorHandler = (err: Error, _req: Request, res: Response, _next: Ne
         code: err.code,
         message: err.message,
         details: err.details,
+        ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
       },
     });
   }
@@ -20,7 +21,7 @@ export const errorHandler = (err: Error, _req: Request, res: Response, _next: Ne
     error: {
       code: "INTERNAL_SERVER_ERROR",
       message: err instanceof Error ? err.message : "Unexpected error",
-      stack: err instanceof Error ? err.stack : undefined,
+      ...(process.env.NODE_ENV !== "production" && { stack: err instanceof Error ? err.stack : undefined }),
     },
   });
 };

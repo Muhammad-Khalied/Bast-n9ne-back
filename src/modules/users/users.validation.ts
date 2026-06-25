@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const profileUpdateSchema = z.object({
   body: z.object({
-    firstName: z.string({ required_error: "First name is required" }).min(2, "First name must be at least 2 characters long").optional(),
-    lastName: z.string({ required_error: "Last name is required" }).min(2, "Last name must be at least 2 characters long").optional(),
-    phone: z.string().optional(),
+    firstName: z.string({ required_error: "First name is required" }).min(2, "First name must be at least 2 characters long").max(100, "First name is too long").optional(),
+    lastName: z.string({ required_error: "Last name is required" }).min(2, "Last name must be at least 2 characters long").max(100, "Last name is too long").optional(),
+    phone: z.string().max(20, "Phone number is too long").optional(),
     avatar: z.string().optional(),
   }),
 });
@@ -12,7 +12,12 @@ export const profileUpdateSchema = z.object({
 export const passwordChangeSchema = z.object({
   body: z.object({
     currentPassword: z.string({ required_error: "Current password is required" }).min(1, "Please enter your current password"),
-    newPassword: z.string({ required_error: "New password is required" }).min(8, "New password must be at least 8 characters long"),
+    newPassword: z
+      .string({ required_error: "New password is required" })
+      .min(8, "New password must be at least 8 characters long")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
   }),
 });
 

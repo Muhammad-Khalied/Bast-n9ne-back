@@ -38,9 +38,15 @@ export class CartService {
   }
 
   async addItem(userId: string, productId: string, variantId: string, quantity: number) {
-    const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
+    const variant = await prisma.productVariant.findUnique({ 
+      where: { id: variantId },
+      include: { product: true }
+    });
     if (!variant || variant.productId !== productId) {
       throw new AppError("Invalid product variant", 400, "INVALID_VARIANT");
+    }
+    if (variant.product.status !== "PUBLISHED") {
+      throw new AppError("Product is no longer available", 400, "PRODUCT_UNAVAILABLE");
     }
 
     const cart = await this.ensureCart(userId);

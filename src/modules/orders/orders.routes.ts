@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
 import { validate } from "../../middleware/validate";
+import { orderLimiter } from "../../middleware/rateLimiter";
 import {
   createOrder,
   getAdminOrder,
@@ -20,5 +21,5 @@ adminOrdersRoutes.get("/:id", authenticate, authorize("ADMIN"), getAdminOrder);
 adminOrdersRoutes.patch("/:id/status", authenticate, authorize("ADMIN"), validate(orderStatusSchema), updateOrderStatus);
 
 ordersRoutes.get("/", authenticate, listOrders);
-ordersRoutes.post("/", authenticate, validate(orderCreateSchema), createOrder);
+ordersRoutes.post("/", authenticate, orderLimiter, validate(orderCreateSchema), createOrder);
 ordersRoutes.get("/:id", authenticate, getOrder);
