@@ -11,6 +11,7 @@ import { mediaRoutes } from "../modules/media/media.routes";
 import { analyticsRoutes } from "../modules/analytics/analytics.routes";
 import { searchRoutes } from "../modules/search/search.routes";
 import { settingsRoutes } from "../modules/settings/settings.routes";
+import { aiDesignerRoutes, adminAiDesignerRoutes } from "../modules/ai-designer/ai-designer.routes";
 
 export const routes = Router();
 
@@ -30,3 +31,5 @@ routes.use("/media", mediaRoutes);
 routes.use("/analytics", analyticsRoutes);
 routes.use("/search", searchRoutes);
 routes.use("/settings", settingsRoutes);
+routes.use("/ai", aiDesignerRoutes);
+routes.use("/admin/ai", adminAiDesignerRoutes);

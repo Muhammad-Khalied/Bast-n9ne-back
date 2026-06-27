@@ -21,12 +21,13 @@ model User {
   lastLoginAt   DateTime?      @map("last_login_at")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
-  addresses     Address[]
-  auditLogs     AuditLog[]     @relation("AuditActor")
-  cart          Cart?
-  orders        Order[]
-  refreshTokens RefreshToken[]
-  wishlist      Wishlist?
+  addresses      Address[]
+  auditLogs      AuditLog[]            @relation("AuditActor")
+  cart           Cart?
+  orders         Order[]
+  refreshTokens  RefreshToken[]
+  wishlist       Wishlist?
+  customDesigns  CustomTShirtDesign[]
 
   @@map("users")
 }
@@ -165,8 +166,9 @@ model Cart {
   userId    String     @unique @map("user_id")
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
-  items     CartItem[]
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CartItem[]
+  customItems CustomCartItem[]
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("carts")
 }
@@ -233,6 +235,7 @@ model Order {
   createdAt          DateTime      @default(now()) @map("created_at")
   updatedAt          DateTime      @updatedAt @map("updated_at")
   items              OrderItem[]
+  customItems        CustomOrderItem[]
   address            Address       @relation(fields: [addressId], references: [id])
   user               User          @relation(fields: [userId], references: [id])
 
@@ -368,4 +371,66 @@ enum AuditAction {
   STATUS_CHANGE
   LOGIN
   LOGOUT
+}
+
+enum CustomDesignStatus {
+  GENERATED
+  ORDERED
+  DELETED
+}
+
+model CustomTShirtDesign {
+  id               String              @id @default(cuid())
+  userId           String              @map("user_id")
+  prompt           String
+  revisedPrompt    String?             @map("revised_prompt")
+  imageUrl         String              @map("image_url")
+  imagePublicId    String?             @map("image_public_id")
+  shirtColor       String              @map("shirt_color")
+  size             String
+  status           CustomDesignStatus  @default(GENERATED)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customCartItems  CustomCartItem[]
+  customOrderItems CustomOrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("custom_tshirt_designs")
+}
+
+model CustomCartItem {
+  id        String              @id @default(cuid())
+  cartId    String              @map("cart_id")
+  designId  String              @map("design_id")
+  quantity  Int                 @default(1)
+  unitPrice Decimal             @map("unit_price") @db.Decimal(10, 2)
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+  cart      Cart                @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  design    CustomTShirtDesign  @relation(fields: [designId], references: [id])
+
+  @@unique([cartId, designId])
+  @@index([cartId])
+  @@map("custom_cart_items")
+}
+
+model CustomOrderItem {
+  id         String              @id @default(cuid())
+  orderId    String              @map("order_id")
+  designId   String              @map("design_id")
+  title      String
+  prompt     String
+  imageUrl   String              @map("image_url")
+  shirtColor String              @map("shirt_color")
+  size       String
+  price      Decimal             @db.Decimal(10, 2)
+  quantity   Int
+  subtotal   Decimal             @db.Decimal(10, 2)
+  order      Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  design     CustomTShirtDesign  @relation(fields: [designId], references: [id])
+
+  @@index([orderId])
+  @@map("custom_order_items")
 }

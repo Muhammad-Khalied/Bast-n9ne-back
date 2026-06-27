@@ -13,6 +13,10 @@ export class CartService {
           },
           orderBy: { createdAt: "desc" },
         },
+        customItems: {
+          include: { design: true },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -111,6 +115,9 @@ export class CartService {
     }
 
     await prisma.cartItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+    await prisma.customCartItem.deleteMany({
       where: { cartId: cart.id },
     });
     return { message: "Cart cleared" };

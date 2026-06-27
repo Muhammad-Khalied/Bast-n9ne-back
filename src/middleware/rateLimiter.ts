@@ -48,3 +48,11 @@ export const uploadLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: { message: "Too many file uploads, please try again later.", code: "TOO_MANY_REQUESTS" } }
 });
+
+export const aiGenerateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 60 minutes
+  limit: isProd ? 5 : 50, // 5 generations per hour in prod
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { success: false, error: { message: "Too many AI generation requests, please try again later.", code: "TOO_MANY_REQUESTS" } }
+});

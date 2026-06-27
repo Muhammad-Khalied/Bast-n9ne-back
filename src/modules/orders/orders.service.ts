@@ -18,17 +18,25 @@ export class OrdersService {
             variant: true,
           },
         },
+        customItems: {
+          include: { design: true },
+        },
       },
     });
 
-    if (!cart || cart.items.length === 0) {
+    if (!cart || (cart.items.length === 0 && cart.customItems.length === 0)) {
       throw new AppError("Cart is empty", 400, "CART_EMPTY");
     }
 
-    const subtotal = cart.items.reduce((sum, item) => {
+    const regularSubtotal = cart.items.reduce((sum, item) => {
       return sum + Number(item.product.discountPrice ?? item.product.price) * item.quantity;
     }, 0);
 
+    const customSubtotal = cart.customItems.reduce((sum, item) => {
+      return sum + Number(item.unitPrice) * item.quantity;
+    }, 0);
+
+    const subtotal = regularSubtotal + customSubtotal;
     const shippingCost = 150;
     const total = subtotal + shippingCost;
 
@@ -57,10 +65,24 @@ export class OrdersService {
               imageUrl: item.product.media?.[0]?.url ?? null,
             })),
           },
+          customItems: {
+            create: cart.customItems.map((item) => ({
+              designId: item.designId,
+              title: `Custom AI T-Shirt — ${item.design.shirtColor}`,
+              prompt: item.design.prompt,
+              imageUrl: item.design.imageUrl,
+              shirtColor: item.design.shirtColor,
+              size: item.design.size,
+              price: item.unitPrice,
+              quantity: item.quantity,
+              subtotal: Number(item.unitPrice) * item.quantity,
+            })),
+          },
         },
-        include: { items: true },
+        include: { items: true, customItems: true },
       });
 
+      // Process regular items: validate, decrement stock, record inventory
       for (const item of cart.items) {
         if (item.product.status !== "PUBLISHED" || !item.variant.isActive) {
           throw new AppError(`Product "${item.product.title}" is no longer available. Please review your cart.`, 400, "PRODUCT_UNAVAILABLE");
@@ -86,7 +108,17 @@ export class OrdersService {
         });
       }
 
+      // Mark custom designs as ordered
+      for (const item of cart.customItems) {
+        await tx.customTShirtDesign.update({
+          where: { id: item.designId },
+          data: { status: "ORDERED" },
+        });
+      }
+
+      // Clear cart
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await tx.customCartItem.deleteMany({ where: { cartId: cart.id } });
 
       return created;
     });
@@ -98,14 +130,14 @@ export class OrdersService {
     return prisma.order.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { items: true },
+      include: { items: true, customItems: true },
     });
   }
 
   async getForUser(userId: string, id: string) {
     const order = await prisma.order.findFirst({
       where: { id, userId },
-      include: { items: true, address: true },
+      include: { items: true, customItems: true, address: true },
     });
 
     if (!order) {
@@ -118,7 +150,7 @@ export class OrdersService {
   async listAdmin() {
     return prisma.order.findMany({
       orderBy: { createdAt: "desc" },
-      include: { user: true, items: true },
+      include: { user: true, items: true, customItems: true },
     });
   }
 
@@ -137,6 +169,9 @@ export class OrdersService {
             },
             variant: true,
           },
+        },
+        customItems: {
+          include: { design: true },
         },
       },
     });
